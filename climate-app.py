@@ -10,19 +10,32 @@ from sqlalchemy import create_engine, func
 
 from flask import Flask, jsonify
 
+#################################################
+# Database Setup
+#################################################
+
 engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
+# reflect an existing database into a new model
 Base = automap_base()
+# reflect the tables
 Base.prepare(engine, reflect=True)
 Base.classes.keys()
-
+# Save reference to the table
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
 session= Session(engine)
 
+#################################################
+# Flask Setup
+#################################################
+
 app = Flask(__name__)
 
+#################################################
+# Flask Routes
+#################################################
 
 
 @app.route("/")
@@ -44,6 +57,7 @@ def home_page():
 @app.route("/api/v1.0/stations")
 def stations():
     results = session.query(Station.name).all()
+ # Convert list of tuples into normal list
     all_stations = list(np.ravel(results))
     return jsonify(all_stations)
 
@@ -89,10 +103,11 @@ def tobs():
 
 @app.route("/api/v1.0/<start>")
 def start_temp(start):
-    # get the min/avg/max
+    
     Start_date = dt.datetime.strptime(start, "%Y-%m-%d")
     temp_data = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).filter(Measurement.date >= Start_date).all()
     session.close()
+    # Convert list of tuples into normal list
     result = list(np.ravel(temp_data))
 
     return jsonify(temp_data)
